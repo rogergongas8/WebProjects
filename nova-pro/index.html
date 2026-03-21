@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nova Pro — Power, Reimagined</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Archivo:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── Design Tokens ─────────────────────────────────────────────── */
+    :root {
+      --bg:          #07080f;
+      --bg-section:  #09091a;
+      --accent:      #6366f1;
+      --accent-rgb:  99, 102, 241;
+      --accent-light:#818cf8;
+      --text:        #f0f0ff;
+      --text-secondary: rgba(240,240,255,0.5);
+      --border:      rgba(255,255,255,0.06);
+      --glass-bg:    rgba(255,255,255,0.03);
+    }
+
+    /* ─── Reset & Base ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: auto; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Archivo', sans-serif;
+      overflow-x: hidden;
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0d0d1a; }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--accent), var(--accent-light));
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.6);
+    }
+
+    /* ─── Scroll Progress Bar ───────────────────────────────────────── */
+    #scrollProgress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      z-index: 10000;
+      transition: width 0.1s linear;
+    }
+
+    /* ─── Starscape ─────────────────────────────────────────────────── */
+    #starscape {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    /* ─── Loader ────────────────────────────────────────────────────── */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.6s ease;
+    }
+    .loader-logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 32px;
+    }
+    .loader-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .loader-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .loader-bar-track {
+      width: 200px;
+      height: 2px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #loaderBar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      border-radius: 2px;
+      transition: width 0.25s ease;
+    }
+
+    /* ─── Navbar ─────────────────────────────────────────────────────── */
+    #navbar {
+      position: fixed;
+      top: 12px;
+      left: 0; right: 0;
+      z-index: 1000;
+      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+      display: flex;
+      justify-content: center;
+    }
+    .nav-inner {
+      width: 100%;
+      max-width: 100%;
+      padding: 14px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    }
+    #navbar.nav-scrolled .nav-inner {
+      max-width: 820px;
+      background: rgba(7,8,15,0.7);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 100px;
+      padding: 10px 24px;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo img {
+      height: 28px;
+      width: auto;
+      object-fit: contain;
+    }
+    .nav-logo-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-family: 'Archivo', sans-serif;
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--accent) !important;
+      color: #fff !important;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem !important;
+      font-weight: 600;
+    }
+    .nav-cta:hover { opacity: 0.88; }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+    }
+
+    /* ─── Hero ───────────────────────────────────────────────────────── */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+    }
+    .orb-1 {
+      width: 560px; height: 560px;
+      background: var(--accent);
+      opacity: 0.12;
+      top: -180px; right: -80px;
+    }
+    .orb-2 {
+      width: 420px; height: 420px;
+      background: var(--accent-light);
+      opacity: 0.07;
+      bottom: -140px; left: -80px;
+    }
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 24px;
+      max-width: 780px;
+    }
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent-light);
+      margin-bottom: 20px;
+      display: block;
+    }
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 700;
+      line-height: 1.0;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+    }
+    .hero-title .accent { color: var(--accent-light); }
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin-bottom: 40px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 64px;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.35);
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 36px rgba(var(--accent-rgb), 0.55);
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      padding: 14px 32px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 12px;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,0.35);
+      transform: translateY(-2px);
+    }
+    .scroll-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .scroll-arrow {
+      width: 20px;
+      height: 20px;
+      border-right: 1.5px solid var(--text-secondary);
+      border-bottom: 1.5px solid var(--text-secondary);
+      transform: rotate(45deg);
+      animation: bounceDown 1.6s ease infinite;
+    }
+    @keyframes bounceDown {
+      0%, 100% { transform: rotate(45deg) translateY(0); opacity: 1; }
+      50%       { transform: rotate(45deg) translateY(6px); opacity: 0.5; }
+    }
+
+    /* ─── Scroll Animation ───────────────────────────────────────────── */
+    .scroll-animation {
+      height: 180vh;
+      position: relative;
+      z-index: 1;
+    }
+    .scroll-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+    }
+    #frameCanvas {
+      position: absolute;
+      top: 0; left: 0;
+    }
+    @media (max-width: 1024px) { .scroll-animation { height: 160vh; } }
+    @media (max-width: 768px)  { .scroll-animation { height: 140vh; } }
+
+    /* ─── Annotation Cards ───────────────────────────────────────────── */
+    .annotation-card {
+      position: absolute;
+      bottom: 8vh;
+      left: 5vw;
+      max-width: 340px;
+      background: rgba(7,8,20,0.55);
+      border: 1px solid rgba(var(--accent-rgb), 0.15);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 20px;
+      padding: 26px 28px;
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .annotation-card.right {
+      left: auto;
+      right: 5vw;
+    }
+    .annotation-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .card-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent-light);
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .card-desc {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 18px;
+    }
+    .card-stat {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .card-stat-number {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-light);
+      line-height: 1;
+    }
+    .card-stat-label {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    @media (max-width: 768px) {
+      .annotation-card {
+        bottom: 1.5vh;
+        left: 2vw !important;
+        right: 2vw !important;
+        max-width: none;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-radius: 14px;
+      }
+      .annotation-card.right { left: 2vw; right: 2vw; }
+      .card-desc, .card-stat { display: none; }
+      .card-number { margin-bottom: 0; font-size: 0.65rem; }
+      .card-title { font-size: 0.9rem; margin-bottom: 0; }
+    }
+
+    /* ─── Specs ──────────────────────────────────────────────────────── */
+    #specs {
+      position: relative;
+      z-index: 1;
+      background: var(--bg-section);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .specs-header {
+      text-align: center;
+      padding-top: 80px;
+      padding-bottom: 0;
+    }
+    .section-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent-light);
+      display: block;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 80px 32px 100px;
+      text-align: center;
+    }
+    .spec-item {
+      position: relative;
+    }
+    .spec-number {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 3.2rem;
+      font-weight: 700;
+      display: block;
+      color: var(--text);
+      transition: text-shadow 0.3s ease;
+      line-height: 1;
+    }
+    .spec-number.counting {
+      color: var(--accent-light);
+      text-shadow: 0 0 28px rgba(var(--accent-rgb), 0.5);
+    }
+    .spec-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 10px;
+      display: block;
+      font-family: 'Archivo', sans-serif;
+      letter-spacing: 0.5px;
+    }
+    @media (max-width: 768px) {
+      .specs-grid { grid-template-columns: repeat(2,1fr); gap: 32px; }
+      .spec-number { font-size: 2.4rem; }
+    }
+
+    /* ─── Features ───────────────────────────────────────────────────── */
+    #features {
+      position: relative;
+      z-index: 1;
+      padding: 100px 32px;
+    }
+    .features-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .feature-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 32px;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(var(--accent-rgb), 0.22);
+      box-shadow: 0 12px 40px rgba(var(--accent-rgb), 0.08);
+    }
+    .feature-icon {
+      font-size: 1.8rem;
+      margin-bottom: 18px;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(var(--accent-rgb), 0.1);
+      border-radius: 12px;
+    }
+    .feature-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    @media (max-width: 1024px) { .features-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 640px)  { .features-grid { grid-template-columns: 1fr; } }
+
+    /* ─── CTA ────────────────────────────────────────────────────────── */
+    #cta {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 120px 32px;
+      background: var(--bg-section);
+      border-top: 1px solid var(--border);
+      overflow: hidden;
+    }
+    #cta .orb-cta {
+      position: absolute;
+      width: 600px; height: 600px;
+      background: var(--accent);
+      opacity: 0.07;
+      filter: blur(100px);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .cta-content {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .cta-content h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .cta-content p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      line-height: 1.65;
+      margin-bottom: 40px;
+    }
+    .btn-large {
+      font-size: 1.05rem;
+      padding: 18px 52px;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────────────── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 56px 32px 36px;
+      text-align: center;
+    }
+    .footer-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .footer-brand img {
+      height: 24px;
+      width: auto;
+      object-fit: contain;
+      opacity: 0.7;
+    }
+    .footer-brand-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin-bottom: 24px;
+    }
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s ease;
+    }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy {
+      color: rgba(240,240,255,0.28);
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Scroll Progress -->
+  <div id="scrollProgress"></div>
+
+  <!-- Starscape -->
+  <canvas id="starscape"></canvas>
+
+  <!-- Loader -->
+  <div id="loader">
+    <div class="loader-logo">
+      <img src="logo.webp" alt="Nova" />
+    </div>
+    <p class="loader-text">Loading</p>
+    <div class="loader-bar-track">
+      <div id="loaderBar"></div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo">
+        <img src="logo.webp" alt="Nova Logo" />
+        <span class="nav-logo-text">NOVA</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#specs">Specs</a>
+        <a href="#cta" class="nav-cta">Order Now</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section id="hero">
+    <div class="hero-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="grid-overlay"></div>
+    </div>
+    <div class="hero-content">
+      <span class="hero-eyebrow">Introducing</span>
+      <h1 class="hero-title">Nova <span class="accent">Pro</span></h1>
+      <p class="hero-subtitle">The thinnest laptop ever built. Engineered for creators who refuse to slow down — now with the Nova M3 chip.</p>
+      <div class="hero-buttons">
+        <a href="#cta" class="btn-primary">Order Now</a>
+        <a href="#features" class="btn-secondary">Explore Features</a>
+      </div>
+      <div class="scroll-hint">
+        <span>Scroll to explore</span>
+        <div class="scroll-arrow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scroll Animation -->
+  <section class="scroll-animation" id="scrollSection">
+    <div class="scroll-sticky">
+      <canvas id="frameCanvas"></canvas>
+
+      <!-- Card 1 — Display (left) -->
+      <div class="annotation-card" data-show="0.08" data-hide="0.32">
+        <div class="card-number">01 — DISPLAY</div>
+        <h3 class="card-title">Liquid Retina XDR</h3>
+        <p class="card-desc">2560×1600 nano-texture glass with ProMotion adaptive refresh. Every pixel engineered for color accuracy.</p>
+        <div class="card-stat">
+          <span class="card-stat-number">120</span>
+          <span class="card-stat-label">Hz ProMotion</span>
+        </div>
+      </div>
+
+      <!-- Card 2 — Performance (right) -->
+      <div class="annotation-card right" data-show="0.38" data-hide="0.62">
+        <div class="card-number">02 — PERFORMANCE</div>
+        <h3 class="card-title">Nova M3 Chip</h3>
+        <p class="card-desc">Custom silicon built on 3nm architecture. Handles 8K video, 3D rendering, and AI workloads without breaking a sweat.</p>
+        <div class="card-stat">
+          <span class="card-stat-number">3×</span>
+          <span class="card-stat-label">faster than before</span>
+        </div>
+      </div>
+
+      <!-- Card 3 — Battery (left) -->
+      <div class="annotation-card" data-show="0.68" data-hide="0.91">
+        <div class="card-number">03 — BATTERY</div>
+        <h3 class="card-title">All-Day Endurance</h3>
+        <p class="card-desc">One charge. All day, all night. Nova Pro redefines what battery life means for a machine this thin.</p>
+        <div class="card-stat">
+          <span class="card-stat-number">22</span>
+          <span class="card-stat-label">hrs battery life</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Specs -->
+  <section id="specs">
+    <div class="specs-header">
+      <span class="section-eyebrow">By the numbers</span>
+      <h2 class="section-title">Built Different</h2>
+      <p class="section-sub">Numbers that speak louder than words.</p>
+    </div>
+    <div class="specs-grid">
+      <div class="spec-item" data-target="22" data-suffix="hr">
+        <span class="spec-number">0</span>
+        <span class="spec-label">Battery Life</span>
+      </div>
+      <div class="spec-item" data-target="13.3" data-suffix='"'>
+        <span class="spec-number">0</span>
+        <span class="spec-label">Retina Display</span>
+      </div>
+      <div class="spec-item" data-target="1.4" data-suffix="kg">
+        <span class="spec-number">0</span>
+        <span class="spec-label">Ultralight Body</span>
+      </div>
+      <div class="spec-item" data-target="1.9" data-suffix="mm">
+        <span class="spec-number">0</span>
+        <span class="spec-label">Thin Profile</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="features-header">
+      <span class="section-eyebrow">What's inside</span>
+      <h2 class="section-title">Every Detail Counts</h2>
+      <p class="section-sub">Six reasons Nova Pro changes everything.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🖥️</div>
+        <h3>Nano-Texture Display</h3>
+        <p>Matte nano-texture glass eliminates glare without reducing sharpness. 1 billion colors at 1,000 nits peak brightness.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Nova M3 Chip</h3>
+        <p>3nm custom silicon with a 12-core CPU and 20-core GPU. Neural Engine processes 18 trillion operations per second.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔋</div>
+        <h3>Adaptive Battery</h3>
+        <p>Machine learning optimizes power usage in real time. Up to 22 hours of active use — or three days on standby.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Precision Chassis</h3>
+        <p>CNC-machined from a single aluminum billet. 1.9mm thick, yet rigid enough to pass military-grade drop testing.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <h3>Universal Connectivity</h3>
+        <p>Four Thunderbolt 5 ports, Wi-Fi 7, and Bluetooth 5.3. One cable handles power, display, and 120Gbps data transfer.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h3>Nova AI Studio</h3>
+        <p>On-device AI for real-time transcription, image generation, and code completion — entirely private, zero cloud dependency.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta">
+    <div class="orb-cta"></div>
+    <div class="cta-content">
+      <h2>Ready to upgrade your workflow?</h2>
+      <p>Nova Pro is available now in Space Black, Arctic Silver, and Starlight White. Free shipping, free returns, zero compromises.</p>
+      <a href="#" class="btn-primary btn-large">Order Nova Pro</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="logo.webp" alt="Nova" />
+        <span class="footer-brand-name">NOVA</span>
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Support</a>
+        <a href="#">Careers</a>
+      </div>
+      <p class="footer-copy">&copy; 2026 Nova. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════
+       STARSCAPE
+    ═══════════════════════════════════════════════════════════ */
+    (function() {
+      const canvas = document.getElementById('starscape');
+      const ctx = canvas.getContext('2d');
+      const STAR_COUNT = 180;
+      let stars = [];
+
+      function resize() {
+        canvas.width  = window.innerWidth  * (window.devicePixelRatio || 1);
+        canvas.height = window.innerHeight * (window.devicePixelRatio || 1);
+        canvas.style.width  = window.innerWidth  + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+      }
+
+      function initStars() {
+        stars = [];
+        for (let i = 0; i < STAR_COUNT; i++) {
+          stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: 0.3 + Math.random() * 1.2,
+            baseOpacity: 0.2 + Math.random() * 0.6,
+            driftX: (Math.random() - 0.5) * 0.035,
+            driftY: (Math.random() - 0.5) * 0.018,
+            twinkleSpeed: 0.0005 + Math.random() * 0.0015,
+            twinklePhase: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const now = Date.now();
+        stars.forEach(s => {
+          s.x += s.driftX;
+          s.y += s.driftY;
+          if (s.x < 0) s.x = canvas.width;
+          if (s.x > canvas.width) s.x = 0;
+          if (s.y < 0) s.y = canvas.height;
+          if (s.y > canvas.height) s.y = 0;
+          const twinkle = Math.sin(now * s.twinkleSpeed + s.twinklePhase);
+          const opacity = Math.max(0, s.baseOpacity + twinkle * 0.28);
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,255,255,${opacity})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(animate);
+      }
+
+      window.addEventListener('resize', () => { resize(); initStars(); });
+      resize();
+      initStars();
+      animate();
+    })();
+
+    /* ═══════════════════════════════════════════════════════════
+       FRAME SEQUENCE
+    ═══════════════════════════════════════════════════════════ */
+    (function() {
+      const FRAME_COUNT = 121;
+      const canvas = document.getElementById('frameCanvas');
+      const ctx = canvas.getContext('2d');
+      const loader = document.getElementById('loader');
+      const loaderBar = document.getElementById('loaderBar');
+
+      const frames = new Array(FRAME_COUNT);
+      let loadedCount = 0;
+      let currentFrame = -1;
+      let ticking = false;
+      let allLoaded = false;
+
+      /* ── Canvas resize ───────────────────────────────────── */
+      function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width  = window.innerWidth  * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width  = window.innerWidth  + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        if (currentFrame >= 0) drawFrame(currentFrame);
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      /* ── Draw frame ──────────────────────────────────────── */
+      function drawFrame(index) {
+        const img = frames[index];
+        if (!img || !img.complete || img.naturalWidth === 0) return;
+        const cw = canvas.width;
+        const ch = canvas.height;
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const cvRatio  = cw / ch;
+        let dw, dh, dx, dy;
+
+        if (window.innerWidth > 768) {
+          // Cover-fit — fill edge to edge
+          if (cvRatio > imgRatio) {
+            dw = cw;
+            dh = cw / imgRatio;
+          } else {
+            dh = ch;
+            dw = ch * imgRatio;
+          }
+        } else {
+          // Zoomed contain — centered, slightly zoomed for mobile
+          const zoom = 1.2;
+          if (cvRatio > imgRatio) {
+            dh = ch * zoom;
+            dw = dh * imgRatio;
+          } else {
+            dw = cw * zoom;
+            dh = dw / imgRatio;
+          }
+        }
+        dx = (cw - dw) / 2;
+        dy = (ch - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+      }
+
+      /* ── Preload frames ──────────────────────────────────── */
+      for (let i = 1; i <= FRAME_COUNT; i++) {
+        const img = new Image();
+        const idx = i - 1;
+        img.src = `frames/frame_${String(i).padStart(4, '0')}.jpg`;
+        img.onload = () => {
+          frames[idx] = img;
+          loadedCount++;
+          loaderBar.style.width = (loadedCount / FRAME_COUNT * 100) + '%';
+          if (loadedCount === FRAME_COUNT) onAllLoaded();
+        };
+        img.onerror = () => {
+          loadedCount++;
+          if (loadedCount === FRAME_COUNT) onAllLoaded();
+        };
+        frames[idx] = img;
+      }
+
+      function onAllLoaded() {
+        allLoaded = true;
+        drawFrame(0);
+        currentFrame = 0;
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.6s ease';
+        setTimeout(() => loader.style.display = 'none', 650);
+      }
+
+      /* ═══════════════════════════════════════════════════════
+         SCROLL — frame mapping + annotation cards
+      ═══════════════════════════════════════════════════════ */
+      const section  = document.getElementById('scrollSection');
+      const cards    = document.querySelectorAll('.annotation-card');
+
+      /* Build snap zones from card data attributes */
+      const SNAP_ZONES = Array.from(cards).map(card => ({
+        show: parseFloat(card.dataset.show),
+        hide: parseFloat(card.dataset.hide),
+        snapped: false
+      }));
+      const HOLD_MS = 580;
+      let isSnapping = false;
+
+      function updateCards(progress) {
+        cards.forEach((card, i) => {
+          const z = SNAP_ZONES[i];
+          const visible = progress >= z.show && progress <= z.hide;
+          card.classList.toggle('visible', visible);
+
+          if (visible && !z.snapped && !isSnapping) {
+            z.snapped = true;
+            isSnapping = true;
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+              document.body.style.overflow = '';
+              isSnapping = false;
+            }, HOLD_MS);
+          }
+          if (!visible) z.snapped = false;
+        });
+      }
+
+      window.addEventListener('scroll', () => {
+        /* Scroll progress bar */
+        const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+        document.getElementById('scrollProgress').style.width = pct + '%';
+
+        /* Navbar pill */
+        document.getElementById('navbar').classList.toggle('nav-scrolled', window.scrollY > 80);
+
+        if (!allLoaded || ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const rect = section.getBoundingClientRect();
+          const scrollableH = section.offsetHeight - window.innerHeight;
+          const progress = Math.min(1, Math.max(0, -rect.top / scrollableH));
+          const frameIdx = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
+
+          if (frameIdx !== currentFrame) {
+            currentFrame = frameIdx;
+            drawFrame(frameIdx);
+          }
+          updateCards(progress);
+          ticking = false;
+        });
+      }, { passive: true });
+
+    })();
+
+    /* ═══════════════════════════════════════════════════════════
+       SPECS COUNT-UP
+    ═══════════════════════════════════════════════════════════ */
+    (function() {
+      function easeOutExpo(t) {
+        return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+      }
+
+      function countUp(el, target, suffix, duration) {
+        el.classList.add('counting');
+        const start = performance.now();
+        function update(now) {
+          const p = Math.min((now - start) / duration, 1);
+          const val = easeOutExpo(p) * target;
+          el.textContent = (target % 1 === 0 ? Math.floor(val) : val.toFixed(1)) + suffix;
+          if (p < 1) requestAnimationFrame(update);
+          else { el.textContent = target + suffix; el.classList.remove('counting'); }
+        }
+        requestAnimationFrame(update);
+      }
+
+      const specObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.querySelectorAll('.spec-item').forEach((item, i) => {
+            setTimeout(() => {
+              countUp(
+                item.querySelector('.spec-number'),
+                parseFloat(item.dataset.target),
+                item.dataset.suffix || '',
+                1800
+              );
+            }, i * 220);
+          });
+          specObserver.unobserve(entry.target);
+        });
+      }, { threshold: 0.3 });
+
+      specObserver.observe(document.getElementById('specs'));
+    })();
+
+    /* ═══════════════════════════════════════════════════════════
+       FEATURE CARDS — staggered fade-in
+    ═══════════════════════════════════════════════════════════ */
+    (function() {
+      const style = document.createElement('style');
+      style.textContent = `
+        .feature-card {
+          opacity: 0;
+          transform: translateY(24px);
+          transition: opacity 0.55s ease, transform 0.55s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card.revealed {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      `;
+      document.head.appendChild(style);
+
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach((entry, i) => {
+          if (entry.isIntersecting) {
+            entry.target.style.transitionDelay = (parseInt(entry.target.dataset.delay || 0)) + 'ms';
+            entry.target.classList.add('revealed');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.feature-card').forEach((card, i) => {
+        card.dataset.delay = i * 90;
+        obs.observe(card);
+      });
+    })();
+  </script>
+
+</body>
+</html>
