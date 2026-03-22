@@ -840,25 +840,19 @@ const ANN_RANGES = [
   [0.77, 0.97],
 ];
 
-// ── SNAP ZONES — one target frame per annotation ──────────────────────────────
-// Each zone maps to the frame the image should rest on while that annotation is visible
-const SNAP_TARGETS = [0.02, 0.35, 0.62, 0.87]; // normalized progress (0–1)
-const NUM_ZONES    = SNAP_TARGETS.length;
+// ── RENDER STATE ──────────────────────────────────────────────────────────────
+let targetProgress = 0;   // raw scroll-derived value, updated on scroll
+let drawnProgress  = -1;  // last value actually drawn, avoids redundant draws
+let rafPending     = false;
 
-// ── SMOOTH ANIMATION STATE ────────────────────────────────────────────────────
-let targetProgress  = 0;  // snapped target (one of SNAP_TARGETS)
-let smoothProgress  = 0;  // lerped value that chases target
-let rafPending      = false;
-const LERP_FACTOR   = 0.10; // smooth but responsive transition between zones
-const SETTLE_THRESH = 0.5 / (FRAME_COUNT - 1); // half a frame
-
-// Cross-fade between the two nearest frames for silky-smooth motion
+// Cross-fade between the two nearest frames — handles visual smoothness
+// between discrete frames without any time-based lag
 function drawBlended(progress) {
   if (!ready) return;
   const rawIdx = progress * (FRAME_COUNT - 1);
   const lower  = Math.max(0, Math.floor(rawIdx));
   const upper  = Math.min(FRAME_COUNT - 1, lower + 1);
-  const blend  = rawIdx - lower; // 0..1 fractional part
+  const blend  = rawIdx - lower; // fractional part 0..1
 
   const imgA = frames[lower];
   const imgB = frames[upper];
@@ -867,12 +861,9 @@ function drawBlended(progress) {
 
   const size = canvas.width / dpr;
   ctx.clearRect(0, 0, size, size);
-
-  // Always draw lower frame at full opacity
   ctx.globalAlpha = 1;
   ctx.drawImage(imgA, 0, 0, size, size);
 
-  // Blend upper frame on top when meaningful
   if (blend > 0.005 && imgB?.complete && imgB.naturalWidth) {
     ctx.globalAlpha = blend;
     ctx.drawImage(imgB, 0, 0, size, size);
@@ -880,19 +871,12 @@ function drawBlended(progress) {
   }
 }
 
-// RAF render loop — runs until animation has settled
+// RAF loop — draws only when progress has changed, always on a frame boundary
 function renderLoop() {
   rafPending = false;
-
-  // Lerp smooth progress toward scroll target
-  smoothProgress += (targetProgress - smoothProgress) * LERP_FACTOR;
-
-  drawBlended(smoothProgress);
-
-  // Keep looping while still moving
-  if (Math.abs(targetProgress - smoothProgress) > SETTLE_THRESH) {
-    rafPending = true;
-    requestAnimationFrame(renderLoop);
+  if (targetProgress !== drawnProgress) {
+    drawBlended(targetProgress);
+    drawnProgress = targetProgress;
   }
 }
 
@@ -921,20 +905,15 @@ function onScroll() {
   const range     = secH - window.innerHeight;
   const progress  = Math.max(0, Math.min(1, relScroll / range));
 
-  // Snap to the target frame for the current zone — image rests until next zone
-  const inSection = sy >= secTop && sy <= secTop + secH;
-  const zone      = inSection
-    ? Math.min(NUM_ZONES - 1, Math.floor(progress * NUM_ZONES))
-    : -1;
-
-  if (zone >= 0) {
-    targetProgress = SNAP_TARGETS[zone];
-  }
+  // Direct mapping — no lerp, no lag, no trailing motion
+  targetProgress = progress;
   scheduleRender();
 
-  // Annotation cards — one per zone, shown while inside that zone
+  // Annotation cards
+  const inSection = sy >= secTop && sy <= secTop + secH;
   annotations.forEach((ann, i) => {
-    ann.classList.toggle('active', inSection && zone === i);
+    const [s, e] = ANN_RANGES[i];
+    ann.classList.toggle('active', inSection && progress >= s && progress <= e);
   });
 
   // Scroll reveal
