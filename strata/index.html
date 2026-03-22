@@ -840,12 +840,17 @@ const ANN_RANGES = [
   [0.77, 0.97],
 ];
 
+// ── SNAP ZONES — one target frame per annotation ──────────────────────────────
+// Each zone maps to the frame the image should rest on while that annotation is visible
+const SNAP_TARGETS = [0.02, 0.35, 0.62, 0.87]; // normalized progress (0–1)
+const NUM_ZONES    = SNAP_TARGETS.length;
+
 // ── SMOOTH ANIMATION STATE ────────────────────────────────────────────────────
-let targetProgress  = 0;  // where scroll says we should be
+let targetProgress  = 0;  // snapped target (one of SNAP_TARGETS)
 let smoothProgress  = 0;  // lerped value that chases target
 let rafPending      = false;
-const LERP_FACTOR   = 0.12; // lower = slower/smoother, higher = snappier
-const SETTLE_THRESH = 0.5 / (FRAME_COUNT - 1); // half a frame — no point lerping smaller
+const LERP_FACTOR   = 0.10; // smooth but responsive transition between zones
+const SETTLE_THRESH = 0.5 / (FRAME_COUNT - 1); // half a frame
 
 // Cross-fade between the two nearest frames for silky-smooth motion
 function drawBlended(progress) {
@@ -916,15 +921,20 @@ function onScroll() {
   const range     = secH - window.innerHeight;
   const progress  = Math.max(0, Math.min(1, relScroll / range));
 
-  // Update target — rendering happens in RAF loop
-  targetProgress = progress;
+  // Snap to the target frame for the current zone — image rests until next zone
+  const inSection = sy >= secTop && sy <= secTop + secH;
+  const zone      = inSection
+    ? Math.min(NUM_ZONES - 1, Math.floor(progress * NUM_ZONES))
+    : -1;
+
+  if (zone >= 0) {
+    targetProgress = SNAP_TARGETS[zone];
+  }
   scheduleRender();
 
-  // Annotation cards
-  const inSection = sy >= secTop && sy <= secTop + secH;
+  // Annotation cards — one per zone, shown while inside that zone
   annotations.forEach((ann, i) => {
-    const [s, e] = ANN_RANGES[i];
-    ann.classList.toggle('active', inSection && progress >= s && progress <= e);
+    ann.classList.toggle('active', inSection && zone === i);
   });
 
   // Scroll reveal
