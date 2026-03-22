@@ -303,6 +303,7 @@
 
     #scroll-canvas {
       display: block;
+      will-change: transform;
     }
 
     /* ── ANNOTATION CARDS ───────────────────────────────── */
@@ -843,18 +844,35 @@ const ANN_RANGES = [
 let targetProgress  = 0;  // where scroll says we should be
 let smoothProgress  = 0;  // lerped value that chases target
 let rafPending      = false;
-const LERP_FACTOR   = 0.10; // lower = slower/smoother, higher = snappier
-const SETTLE_THRESH = 0.0001;
+const LERP_FACTOR   = 0.12; // lower = slower/smoother, higher = snappier
+const SETTLE_THRESH = 0.5 / (FRAME_COUNT - 1); // half a frame — no point lerping smaller
 
-// Draw the nearest frame — sharp, no ghosting
+// Cross-fade between the two nearest frames for silky-smooth motion
 function drawBlended(progress) {
   if (!ready) return;
-  const idx = Math.round(progress * (FRAME_COUNT - 1));
-  const img = frames[Math.max(0, Math.min(FRAME_COUNT - 1, idx))];
-  if (!img?.complete || !img.naturalWidth) return;
+  const rawIdx = progress * (FRAME_COUNT - 1);
+  const lower  = Math.max(0, Math.floor(rawIdx));
+  const upper  = Math.min(FRAME_COUNT - 1, lower + 1);
+  const blend  = rawIdx - lower; // 0..1 fractional part
+
+  const imgA = frames[lower];
+  const imgB = frames[upper];
+
+  if (!imgA?.complete || !imgA.naturalWidth) return;
+
   const size = canvas.width / dpr;
   ctx.clearRect(0, 0, size, size);
-  ctx.drawImage(img, 0, 0, size, size);
+
+  // Always draw lower frame at full opacity
+  ctx.globalAlpha = 1;
+  ctx.drawImage(imgA, 0, 0, size, size);
+
+  // Blend upper frame on top when meaningful
+  if (blend > 0.005 && imgB?.complete && imgB.naturalWidth) {
+    ctx.globalAlpha = blend;
+    ctx.drawImage(imgB, 0, 0, size, size);
+    ctx.globalAlpha = 1;
+  }
 }
 
 // RAF render loop — runs until animation has settled
