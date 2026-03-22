@@ -303,8 +303,6 @@
 
     #scroll-canvas {
       display: block;
-      /* mix-blend-mode: multiply makes the cream background transparent on white */
-      mix-blend-mode: multiply;
     }
 
     /* ── ANNOTATION CARDS ───────────────────────────────── */
@@ -793,7 +791,6 @@ const annotations = document.querySelectorAll('.annotation');
 // ── FRAME PRELOADING ─────────────────────────────────────────────────────────
 const frames = new Array(FRAME_COUNT);
 let loadedCount = 0;
-let currentFrame = 0;
 let ready = false;
 
 function pad(n) { return String(n).padStart(4, '0'); }
@@ -809,7 +806,7 @@ for (let i = 0; i < FRAME_COUNT; i++) {
       ready = true;
       setTimeout(() => {
         loader.classList.add('hidden');
-        drawFrame(0);
+        drawBlended(0);
       }, 350);
     }
   };
@@ -831,19 +828,10 @@ function setupCanvas() {
   ctx.scale(dpr, dpr);
 }
 
-function drawFrame(idx) {
-  const img = frames[Math.max(0, Math.min(FRAME_COUNT - 1, idx))];
-  if (!img || !img.complete || !img.naturalWidth) return;
-  const size = canvas.width / dpr;
-  ctx.clearRect(0, 0, size, size);
-  ctx.drawImage(img, 0, 0, size, size);
-}
-
 setupCanvas();
-window.addEventListener('resize', () => { setupCanvas(); drawFrame(currentFrame); });
+window.addEventListener('resize', () => { setupCanvas(); drawBlended(smoothProgress); });
 
 // ── ANNOTATION TIMING ────────────────────────────────────────────────────────
-// [start progress, end progress] within the scroll section
 const ANN_RANGES = [
   [0.02, 0.22],
   [0.27, 0.48],
@@ -851,9 +839,50 @@ const ANN_RANGES = [
   [0.77, 0.97],
 ];
 
-// ── MAIN SCROLL HANDLER ───────────────────────────────────────────────────────
+// ── SMOOTH ANIMATION STATE ────────────────────────────────────────────────────
+let targetProgress  = 0;  // where scroll says we should be
+let smoothProgress  = 0;  // lerped value that chases target
+let rafPending      = false;
+const LERP_FACTOR   = 0.10; // lower = slower/smoother, higher = snappier
+const SETTLE_THRESH = 0.0001;
+
+// Draw the nearest frame — sharp, no ghosting
+function drawBlended(progress) {
+  if (!ready) return;
+  const idx = Math.round(progress * (FRAME_COUNT - 1));
+  const img = frames[Math.max(0, Math.min(FRAME_COUNT - 1, idx))];
+  if (!img?.complete || !img.naturalWidth) return;
+  const size = canvas.width / dpr;
+  ctx.clearRect(0, 0, size, size);
+  ctx.drawImage(img, 0, 0, size, size);
+}
+
+// RAF render loop — runs until animation has settled
+function renderLoop() {
+  rafPending = false;
+
+  // Lerp smooth progress toward scroll target
+  smoothProgress += (targetProgress - smoothProgress) * LERP_FACTOR;
+
+  drawBlended(smoothProgress);
+
+  // Keep looping while still moving
+  if (Math.abs(targetProgress - smoothProgress) > SETTLE_THRESH) {
+    rafPending = true;
+    requestAnimationFrame(renderLoop);
+  }
+}
+
+function scheduleRender() {
+  if (!rafPending) {
+    rafPending = true;
+    requestAnimationFrame(renderLoop);
+  }
+}
+
+// ── SCROLL HANDLER — only updates state, never draws directly ─────────────────
 function onScroll() {
-  const sy = window.scrollY;
+  const sy   = window.scrollY;
   const docH = document.documentElement.scrollHeight - window.innerHeight;
 
   // Global scroll progress bar
@@ -862,18 +891,16 @@ function onScroll() {
   // Navbar pill morph
   navbar.classList.toggle('scrolled', sy > 60);
 
-  // Scroll-section animation
+  // Scroll-section progress
   const secTop    = scrollSec.offsetTop;
   const secH      = scrollSec.offsetHeight;
   const relScroll = sy - secTop;
   const range     = secH - window.innerHeight;
   const progress  = Math.max(0, Math.min(1, relScroll / range));
 
-  const target = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
-  if (target !== currentFrame && ready) {
-    currentFrame = target;
-    drawFrame(currentFrame);
-  }
+  // Update target — rendering happens in RAF loop
+  targetProgress = progress;
+  scheduleRender();
 
   // Annotation cards
   const inSection = sy >= secTop && sy <= secTop + secH;
