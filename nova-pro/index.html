@@ -1,582 +1,530 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RGG</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #0a0a0a;
-      --cream: #f2ede6;
-      --cream-dim: rgba(242, 237, 230, 0.45);
-      --cream-faint: rgba(242, 237, 230, 0.07);
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RGG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --cream: #f2ede6;
+        --cream-dim: rgba(242, 237, 230, 0.45);
+        --cream-faint: rgba(242, 237, 230, 0.07);
+      }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    body {
-      background: var(--bg);
-      color: var(--cream);
-      font-family: 'Space Grotesk', sans-serif;
-      overflow-x: hidden;
-    }
+      body {
+        background: var(--bg);
+        color: var(--cream);
+        font-family: "Space Grotesk", sans-serif;
+        overflow-x: hidden;
+      }
 
-    /* ── Scroll Progress ─────────────────────────────────── */
-    #progress-bar {
-      position: fixed;
-      top: 0; left: 0;
-      height: 1px;
-      width: 0%;
-      background: var(--cream);
-      z-index: 1000;
-      transition: width 0.1s linear;
-    }
+      /* ── Scroll Progress ─────────────────────────────────── */
+      #progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 1px;
+        width: 0%;
+        background: var(--cream);
+        z-index: 1000;
+      }
 
-    /* ── Loader ──────────────────────────────────────────── */
-    #loader {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2rem;
-      z-index: 999;
-      transition: opacity 0.8s ease, visibility 0.8s ease;
-    }
-    #loader.hidden { opacity: 0; visibility: hidden; }
-    #loader-logo { height: 52px; }
-    #loader-bar-track {
-      width: 180px;
-      height: 1px;
-      background: rgba(242, 237, 230, 0.1);
-      position: relative;
-      overflow: hidden;
-    }
-    #loader-bar-fill {
-      position: absolute;
-      left: 0; top: 0;
-      height: 100%;
-      background: var(--cream);
-      width: 0%;
-      transition: width 0.06s linear;
-    }
-    #loader-count {
-      font-size: 10px;
-      letter-spacing: 0.25em;
-      color: var(--cream-dim);
-      font-weight: 300;
-    }
+      /* ── Loader ──────────────────────────────────────────── */
+      #loader {
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        z-index: 999;
+        transition:
+          opacity 0.7s ease,
+          visibility 0.7s ease;
+      }
+      #loader.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+      #loader-logo {
+        height: 52px;
+      }
+      #loader-bar-track {
+        width: 180px;
+        height: 1px;
+        background: rgba(242, 237, 230, 0.12);
+        position: relative;
+        overflow: hidden;
+      }
+      #loader-bar-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        background: var(--cream);
+        width: 0%;
+        transition: width 0.08s linear;
+      }
+      #loader-count {
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        color: var(--cream-dim);
+        font-weight: 300;
+      }
 
-    /* ── Navbar ──────────────────────────────────────────── */
-    #navbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      padding: 1.75rem 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 100;
-      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    #navbar.pill {
-      top: 1rem;
-      left: 50%;
-      right: auto;
-      transform: translateX(-50%);
-      padding: 0.7rem 1.75rem;
-      background: rgba(10, 10, 10, 0.88);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid rgba(242, 237, 230, 0.07);
-      border-radius: 100px;
-      gap: 2.5rem;
-      width: auto;
-    }
-    #navbar .logo { height: 26px; }
-    #navbar .nav-links {
-      display: flex;
-      gap: 2rem;
-      list-style: none;
-    }
-    #navbar .nav-links a {
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--cream-dim);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    #navbar .nav-links a:hover { color: var(--cream); }
+      /* ── Navbar ──────────────────────────────────────────── */
+      #navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1.75rem 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 100;
+        transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      #navbar.pill {
+        top: 1rem;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        padding: 0.7rem 1.75rem;
+        background: rgba(10, 10, 10, 0.88);
+        backdrop-filter: blur(24px) saturate(180%);
+        border: 1px solid rgba(242, 237, 230, 0.07);
+        border-radius: 100px;
+        gap: 2.5rem;
+        width: auto;
+      }
+      #navbar .logo {
+        height: 26px;
+      }
+      #navbar .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+      }
+      #navbar .nav-links a {
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--cream-dim);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      #navbar .nav-links a:hover {
+        color: var(--cream);
+      }
 
-    /* ── Hero ────────────────────────────────────────────── */
-    #hero {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      position: relative;
-    }
-    #hero h1 {
-      font-size: clamp(3.5rem, 9vw, 8rem);
-      font-weight: 300;
-      letter-spacing: -0.03em;
-      line-height: 1.0;
-      color: var(--cream);
-      margin-bottom: 1.75rem;
-    }
-    #hero h1 span {
-      color: rgba(242, 237, 230, 0.22);
-    }
-    #hero p {
-      font-size: 0.85rem;
-      color: var(--cream-dim);
-      font-weight: 300;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-    .scroll-cue {
-      position: absolute;
-      bottom: 2.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.6rem;
-    }
-    .scroll-cue span {
-      font-size: 9px;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: rgba(242, 237, 230, 0.2);
-    }
-    .scroll-cue-line {
-      width: 1px;
-      height: 44px;
-      background: linear-gradient(to bottom, rgba(242,237,230,0.25), transparent);
-      animation: cueAnim 2s ease-in-out infinite;
-      transform-origin: top;
-    }
-    @keyframes cueAnim {
-      0%   { transform: scaleY(0); opacity: 0; }
-      40%  { opacity: 1; }
-      100% { transform: scaleY(1); opacity: 0; }
-    }
-
-    /* ── Scroll Animation Section ────────────────────────── */
-    #scroll-section {
-      position: relative;
-    }
-    .scroll-sticky {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow: hidden;
-    }
-    #canvas {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    /* Edge vignette on the canvas container */
-    .scroll-sticky::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(ellipse 80% 80% at 50% 50%, transparent 55%, rgba(10,10,10,0.55) 100%);
-      z-index: 1;
-    }
-
-    /* ── Annotation Cards ────────────────────────────────── */
-    .ann {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-      max-width: 200px;
-      z-index: 2;
-      will-change: opacity, transform;
-    }
-
-    /* Left annotations slide in from left */
-    .ann-left  {
-      left: 6vw;
-      transform: translateX(-18px);
-      transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-                  transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    /* Right annotations slide in from right */
-    .ann-right {
-      right: 6vw;
-      text-align: right;
-      transform: translateX(18px);
-      transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-                  transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .ann.in {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    .ann-t  { top: 18%; }
-    .ann-m  { top: 44%; }
-    .ann-b  { top: 68%; }
-
-    .ann-label {
-      font-size: 9px;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: rgba(242, 237, 230, 0.35);
-      margin-bottom: 0.65rem;
-    }
-
-    .ann-title {
-      font-size: clamp(1rem, 1.6vw, 1.3rem);
-      font-weight: 300;
-      color: var(--cream);
-      line-height: 1.3;
-    }
-
-    /* Word-reveal animation inside ann-title */
-    .ann-title .w {
-      display: inline-block;
-      opacity: 0;
-      transform: translateY(7px);
-      transition: opacity 0.45s ease, transform 0.45s ease;
-    }
-    .ann.in .ann-title .w { opacity: 1; transform: translateY(0); }
-    .ann.in .ann-title .w:nth-child(1) { transition-delay: 0.08s; }
-    .ann.in .ann-title .w:nth-child(2) { transition-delay: 0.16s; }
-    .ann.in .ann-title .w:nth-child(3) { transition-delay: 0.24s; }
-    .ann.in .ann-title .w:nth-child(4) { transition-delay: 0.30s; }
-
-    .ann-rule {
-      margin-top: 0.85rem;
-      width: 28px;
-      height: 1px;
-      background: rgba(242, 237, 230, 0.22);
-      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
-    }
-    .ann.in .ann-rule { width: 48px; }
-    .ann-right .ann-rule { margin-left: auto; }
-
-    /* Connector dot */
-    .ann-dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: rgba(242, 237, 230, 0.3);
-      margin-bottom: 0.55rem;
-      opacity: 0;
-      transition: opacity 0.4s ease 0.15s;
-    }
-    .ann-right .ann-dot { margin-left: auto; }
-    .ann.in .ann-dot { opacity: 1; }
-
-    /* ── CTA Section ─────────────────────────────────────── */
-    #cta {
-      min-height: 60vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 6rem 2rem;
-    }
-    #cta h2 {
-      font-size: clamp(2rem, 5vw, 4.5rem);
-      font-weight: 300;
-      letter-spacing: -0.025em;
-      line-height: 1.05;
-      color: var(--cream);
-      margin-bottom: 1.25rem;
-    }
-    #cta p {
-      color: var(--cream-dim);
-      font-size: 0.9rem;
-      font-weight: 300;
-      letter-spacing: 0.05em;
-      margin-bottom: 2.75rem;
-    }
-    .btn {
-      display: inline-block;
-      padding: 0.9rem 2.75rem;
-      border: 1px solid rgba(242, 237, 230, 0.2);
-      color: var(--cream);
-      font-family: inherit;
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      cursor: pointer;
-      background: transparent;
-      transition: background 0.3s, border-color 0.3s;
-      text-decoration: none;
-    }
-    .btn:hover {
-      background: var(--cream-faint);
-      border-color: rgba(242, 237, 230, 0.45);
-    }
-
-    /* ── Footer ──────────────────────────────────────────── */
-    footer {
-      padding: 2.5rem 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-top: 1px solid rgba(242, 237, 230, 0.05);
-    }
-    footer img { height: 22px; opacity: 0.35; }
-    footer p {
-      font-size: 10px;
-      color: rgba(242, 237, 230, 0.2);
-      letter-spacing: 0.12em;
-    }
-  </style>
-</head>
-<body>
-
-<div id="progress-bar"></div>
-
-<!-- Loader -->
-<div id="loader">
-  <img id="loader-logo" src="logo.png" alt="RGG">
-  <div id="loader-bar-track">
-    <div id="loader-bar-fill"></div>
-  </div>
-  <div id="loader-count">Loading</div>
-</div>
-
-<!-- Navbar -->
-<nav id="navbar">
-  <img class="logo" src="logo.png" alt="RGG">
-  <ul class="nav-links">
-    <li><a href="#">Work</a></li>
-    <li><a href="#">About</a></li>
-    <li><a href="#">Contact</a></li>
-  </ul>
-</nav>
-
-<!-- Hero -->
-<section id="hero">
-  <h1>Made with<br><span>purpose.</span></h1>
-  <p>Scroll to explore</p>
-  <div class="scroll-cue">
-    <span>Scroll</span>
-    <div class="scroll-cue-line"></div>
-  </div>
-</section>
-
-<!-- Scroll Animation -->
-<section id="scroll-section">
-  <div class="scroll-sticky">
-    <canvas id="canvas"></canvas>
-
-    <div class="ann ann-left ann-t" id="ann1">
-      <div class="ann-dot"></div>
-      <div class="ann-label">01 — Design</div>
-      <div class="ann-title"></div>
-      <div class="ann-rule"></div>
-    </div>
-
-    <div class="ann ann-right ann-m" id="ann2">
-      <div class="ann-dot"></div>
-      <div class="ann-label">02 — Motion</div>
-      <div class="ann-title"></div>
-      <div class="ann-rule"></div>
-    </div>
-
-    <div class="ann ann-left ann-b" id="ann3">
-      <div class="ann-dot"></div>
-      <div class="ann-label">03 — Craft</div>
-      <div class="ann-title"></div>
-      <div class="ann-rule"></div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section id="cta">
-  <h2>Let's build<br>something great.</h2>
-  <p>Open to new projects and collaborations.</p>
-  <a href="mailto:hello@rgg.dev" class="btn">Get in touch</a>
-</section>
-
-<!-- Footer -->
-<footer>
-  <img src="logo.png" alt="RGG">
-  <p>© 2026 RGG — Portfolio</p>
-</footer>
-
-<script>
-  const TOTAL = 121;
-  const PX_PER_FRAME = 26; // px of scroll per frame — longer, more cinematic feel
-
-  const frames    = new Array(TOTAL);
-  let loaded      = 0;
-  let curFrame    = 0;   // float for lerp
-  let targetFrame = 0;
-  let rafId       = null;
-
-  const canvas  = document.getElementById('canvas');
-  const ctx     = canvas.getContext('2d');
-  const loader  = document.getElementById('loader');
-  const fill    = document.getElementById('loader-bar-fill');
-  const count   = document.getElementById('loader-count');
-  const progBar = document.getElementById('progress-bar');
-  const navbar  = document.getElementById('navbar');
-  const section = document.getElementById('scroll-section');
-  const ann1    = document.getElementById('ann1');
-  const ann2    = document.getElementById('ann2');
-  const ann3    = document.getElementById('ann3');
-
-  // Annotation text content — injected as word-spans for reveal animation
-  const annTexts = {
-    ann1: 'Every detail,\nconsidered.',
-    ann2: 'Fluid by\nnature.',
-    ann3: 'Built to\nimpress.',
-  };
-
-  function injectWords(ann, text) {
-    const el = ann.querySelector('.ann-title');
-    // Replace newlines with spaces for word-splitting, then re-add <br>
-    const lines = text.split('\n');
-    el.innerHTML = lines.map(line =>
-      line.split(' ').map(w => `<span class="w">${w}</span>`).join(' ')
-    ).join('<br>');
-  }
-
-  injectWords(ann1, annTexts.ann1);
-  injectWords(ann2, annTexts.ann2);
-  injectWords(ann3, annTexts.ann3);
-
-  // Section scroll height
-  section.style.height = (TOTAL * PX_PER_FRAME + window.innerHeight) + 'px';
-
-  // ── Canvas sizing ──────────────────────────────────────────
-  let W, H, dpr;
-  function resizeCanvas() {
-    dpr = window.devicePixelRatio || 1;
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width  = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawFrame(Math.round(curFrame));
-  }
-
-  // ── Draw — image rendered at ~58% viewport, centered ──────
-  function drawFrame(i) {
-    const idx = Math.max(0, Math.min(TOTAL - 1, Math.round(i)));
-    const img = frames[idx];
-    if (!img || !img.complete) return;
-    ctx.clearRect(0, 0, W, H);
-
-    // Constrain to a contained, editorial size (not edge-to-edge)
-    const maxW = W * 0.58;
-    const maxH = H * 0.72;
-    const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
-    const iw = img.naturalWidth  * scale;
-    const ih = img.naturalHeight * scale;
-    const ix = (W - iw) / 2;
-    const iy = (H - ih) / 2;
-
-    ctx.imageSmoothingEnabled  = true;
-    ctx.imageSmoothingQuality  = 'high';
-    ctx.drawImage(img, ix, iy, iw, ih);
-    curFrame = idx;
-  }
-
-  // ── Smooth lerp animation loop ─────────────────────────────
-  function animLoop() {
-    const diff = targetFrame - curFrame;
-    if (Math.abs(diff) > 0.3) {
-      // Ease toward target — factor 0.14 gives snappy-but-smooth feel
-      curFrame += diff * 0.14;
-      drawFrame(curFrame);
-    } else if (curFrame !== targetFrame) {
-      curFrame = targetFrame;
-      drawFrame(curFrame);
-    }
-    rafId = requestAnimationFrame(animLoop);
-  }
-
-  // ── Preload ────────────────────────────────────────────────
-  function preload() {
-    for (let i = 0; i < TOTAL; i++) {
-      const img = new Image();
-      const n   = String(i + 1).padStart(4, '0');
-      img.src   = `frames/frame_${n}.jpg`;
-      img.onload = () => {
-        loaded++;
-        const pct = loaded / TOTAL * 100;
-        fill.style.width   = pct + '%';
-        count.textContent  = `${loaded} / ${TOTAL}`;
-        if (loaded === TOTAL) {
-          setTimeout(() => {
-            loader.classList.add('hidden');
-            drawFrame(0);
-            animLoop();
-          }, 400);
+      /* ── Hero ────────────────────────────────────────────── */
+      #hero {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+      }
+      #hero h1 {
+        font-size: clamp(3.5rem, 9vw, 8rem);
+        font-weight: 300;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        color: var(--cream);
+        margin-bottom: 1.75rem;
+      }
+      #hero h1 span {
+        color: rgba(242, 237, 230, 0.22);
+      }
+      #hero p {
+        font-size: 0.85rem;
+        color: var(--cream-dim);
+        font-weight: 300;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      .scroll-cue {
+        position: absolute;
+        bottom: 2.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .scroll-cue span {
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: rgba(242, 237, 230, 0.2);
+      }
+      .scroll-cue-line {
+        width: 1px;
+        height: 44px;
+        background: linear-gradient(
+          to bottom,
+          rgba(242, 237, 230, 0.25),
+          transparent
+        );
+        animation: cueAnim 2s ease-in-out infinite;
+        transform-origin: top;
+      }
+      @keyframes cueAnim {
+        0% {
+          transform: scaleY(0);
+          opacity: 0;
         }
-      };
-      frames[i] = img;
-    }
-  }
+        40% {
+          opacity: 1;
+        }
+        100% {
+          transform: scaleY(1);
+          opacity: 0;
+        }
+      }
 
-  // ── Scroll ─────────────────────────────────────────────────
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(handleScroll);
-      ticking = true;
-    }
-  }, { passive: true });
+      /* ── Scroll Animation Section ────────────────────────── */
+      #scroll-section {
+        position: relative;
+        /* height set by JS: TOTAL_FRAMES * 18px */
+      }
+      .scroll-sticky {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: hidden;
+      }
+      #canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
 
-  function handleScroll() {
-    ticking = false;
-    const sy   = window.scrollY;
-    const docH = document.documentElement.scrollHeight - window.innerHeight;
+      /* ── Annotation Cards ────────────────────────────────── */
+      .ann {
+        position: absolute;
+        opacity: 0;
+        transition:
+          opacity 0.55s ease,
+          transform 0.55s ease;
+        pointer-events: none;
+        max-width: 220px;
+      }
+      .ann.in {
+        opacity: 1;
+      }
+      .ann-left {
+        left: 5vw;
+      }
+      .ann-right {
+        right: 5vw;
+        text-align: right;
+      }
+      .ann-t {
+        top: 18%;
+      }
+      .ann-m {
+        top: 44%;
+      }
+      .ann-b {
+        top: 68%;
+      }
+      .ann-label {
+        font-size: 9px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--cream-dim);
+        margin-bottom: 0.55rem;
+      }
+      .ann-title {
+        font-size: clamp(1rem, 1.8vw, 1.4rem);
+        font-weight: 300;
+        color: var(--cream);
+        line-height: 1.25;
+      }
+      .ann-rule {
+        margin-top: 0.8rem;
+        width: 32px;
+        height: 1px;
+        background: rgba(242, 237, 230, 0.3);
+      }
+      .ann-right .ann-rule {
+        margin-left: auto;
+      }
 
-    // progress bar
-    progBar.style.width = (sy / docH * 100) + '%';
+      /* ── CTA Section ─────────────────────────────────────── */
+      #cta {
+        min-height: 60vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 6rem 2rem;
+      }
+      #cta h2 {
+        font-size: clamp(2rem, 5vw, 4.5rem);
+        font-weight: 300;
+        letter-spacing: -0.025em;
+        line-height: 1.05;
+        color: var(--cream);
+        margin-bottom: 1.25rem;
+      }
+      #cta p {
+        color: var(--cream-dim);
+        font-size: 0.9rem;
+        font-weight: 300;
+        letter-spacing: 0.05em;
+        margin-bottom: 2.75rem;
+      }
+      .btn {
+        display: inline-block;
+        padding: 0.9rem 2.75rem;
+        border: 1px solid rgba(242, 237, 230, 0.2);
+        color: var(--cream);
+        font-family: inherit;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        cursor: pointer;
+        background: transparent;
+        transition:
+          background 0.3s,
+          border-color 0.3s;
+        text-decoration: none;
+      }
+      .btn:hover {
+        background: var(--cream-faint);
+        border-color: rgba(242, 237, 230, 0.45);
+      }
 
-    // navbar pill morph
-    navbar.classList.toggle('pill', sy > 60);
+      /* ── Footer ──────────────────────────────────────────── */
+      footer {
+        padding: 2.5rem 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid rgba(242, 237, 230, 0.05);
+      }
+      footer img {
+        height: 22px;
+        opacity: 0.35;
+      }
+      footer p {
+        font-size: 10px;
+        color: rgba(242, 237, 230, 0.2);
+        letter-spacing: 0.12em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress-bar"></div>
 
-    // frame mapping
-    const rect      = section.getBoundingClientRect();
-    const secTop    = sy + rect.top;
-    const secScroll = section.offsetHeight - window.innerHeight;
-    const progress  = Math.max(0, Math.min(1, (sy - secTop) / secScroll));
-    targetFrame     = progress * (TOTAL - 1); // keep as float for lerp
+    <!-- Loader -->
+    <div id="loader">
+      <img id="loader-logo" src="logo.png" alt="RGG" />
+      <div id="loader-bar-track">
+        <div id="loader-bar-fill"></div>
+      </div>
+      <div id="loader-count">Loading</div>
+    </div>
 
-    const fi = Math.round(targetFrame);
+    <!-- Navbar -->
+    <nav id="navbar">
+      <img class="logo" src="logo.png" alt="RGG" />
+      <ul class="nav-links">
+        <li><a href="#">Work</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
 
-    // annotations
-    ann1.classList.toggle('in', fi >= 8  && fi <= 42);
-    ann2.classList.toggle('in', fi >= 50 && fi <= 78);
-    ann3.classList.toggle('in', fi >= 86 && fi <= 115);
-  }
+    <!-- Hero -->
+    <section id="hero">
+      <h1>Made with<br /><span>purpose.</span></h1>
+      <p>Scroll to explore</p>
+      <div class="scroll-cue">
+        <span>Scroll</span>
+        <div class="scroll-cue-line"></div>
+      </div>
+    </section>
 
-  window.addEventListener('resize', () => {
-    section.style.height = (TOTAL * PX_PER_FRAME + window.innerHeight) + 'px';
-    resizeCanvas();
-  });
-  resizeCanvas();
-  preload();
-</script>
-</body>
+    <!-- Scroll Animation -->
+    <section id="scroll-section">
+      <div class="scroll-sticky">
+        <canvas id="canvas"></canvas>
+
+        <div class="ann ann-left ann-t" id="ann1">
+          <div class="ann-label">01 — Design</div>
+          <div class="ann-title">Every detail,<br />considered.</div>
+          <div class="ann-rule"></div>
+        </div>
+
+        <div class="ann ann-right ann-m" id="ann2">
+          <div class="ann-label">02 — Motion</div>
+          <div class="ann-title">Fluid by<br />nature.</div>
+          <div class="ann-rule"></div>
+        </div>
+
+        <div class="ann ann-left ann-b" id="ann3">
+          <div class="ann-label">03 — Craft</div>
+          <div class="ann-title">Built to<br />impress.</div>
+          <div class="ann-rule"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="cta">
+      <h2>Let's build<br />something great.</h2>
+      <p>Open to new projects and collaborations.</p>
+      <a href="mailto:hello@rgg.dev" class="btn">Get in touch</a>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <img src="logo.png" alt="RGG" />
+      <p>© 2026 RGG — Portfolio</p>
+    </footer>
+
+    <script>
+      const TOTAL = 121;
+      const frames = new Array(TOTAL);
+      let loaded = 0;
+      let curFrame = 0;
+      let rafId = null;
+      let targetFrame = 0;
+
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const loader = document.getElementById("loader");
+      const fill = document.getElementById("loader-bar-fill");
+      const count = document.getElementById("loader-count");
+      const progBar = document.getElementById("progress-bar");
+      const navbar = document.getElementById("navbar");
+      const section = document.getElementById("scroll-section");
+      const ann1 = document.getElementById("ann1");
+      const ann2 = document.getElementById("ann2");
+      const ann3 = document.getElementById("ann3");
+
+      // Section height: gives ~20px of scroll per frame
+      section.style.height = TOTAL * 20 + window.innerHeight + "px";
+
+      // ── Canvas sizing ─────────────────────────────────────────
+      let W, H, dpr;
+      function resizeCanvas() {
+        dpr = window.devicePixelRatio || 1;
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        canvas.style.width = W + "px";
+        canvas.style.height = H + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawFrame(curFrame);
+      }
+
+      // ── Draw ──────────────────────────────────────────────────
+      function drawFrame(i) {
+        const img = frames[i];
+        if (!img || !img.complete) return;
+        ctx.clearRect(0, 0, W, H);
+        const scale = Math.min(W / img.naturalWidth, H / img.naturalHeight);
+        const iw = img.naturalWidth * scale;
+        const ih = img.naturalHeight * scale;
+        const ix = (W - iw) / 2;
+        const iy = (H - ih) / 2;
+        ctx.drawImage(img, ix, iy, iw, ih);
+        curFrame = i;
+      }
+
+      // Smooth lerp toward target frame
+      function animLoop() {
+        if (Math.abs(targetFrame - curFrame) >= 1) {
+          const next = curFrame + Math.sign(targetFrame - curFrame);
+          drawFrame(next);
+        }
+        rafId = requestAnimationFrame(animLoop);
+      }
+
+      // ── Preload ───────────────────────────────────────────────
+      function preload() {
+        for (let i = 0; i < TOTAL; i++) {
+          const img = new Image();
+          const n = String(i + 1).padStart(4, "0");
+          img.src = `frames/frame_${n}.jpg`;
+          img.onload = () => {
+            loaded++;
+            const pct = (loaded / TOTAL) * 100;
+            fill.style.width = pct + "%";
+            count.textContent = `${loaded} / ${TOTAL}`;
+            if (loaded === TOTAL) {
+              setTimeout(() => {
+                loader.classList.add("hidden");
+                drawFrame(0);
+                animLoop();
+              }, 400);
+            }
+          };
+          frames[i] = img;
+        }
+      }
+
+      // ── Scroll ────────────────────────────────────────────────
+      window.addEventListener(
+        "scroll",
+        () => {
+          const sy = window.scrollY;
+          const docH =
+            document.documentElement.scrollHeight - window.innerHeight;
+
+          // progress bar
+          progBar.style.width = (sy / docH) * 100 + "%";
+
+          // navbar pill morph
+          navbar.classList.toggle("pill", sy > 60);
+
+          // frame mapping
+          const rect = section.getBoundingClientRect();
+          const secTop = sy + rect.top;
+          const secScroll = section.offsetHeight - window.innerHeight;
+          const progress = Math.max(0, Math.min(1, (sy - secTop) / secScroll));
+          targetFrame = Math.round(progress * (TOTAL - 1));
+
+          // annotations
+          ann1.classList.toggle("in", targetFrame >= 8 && targetFrame <= 40);
+          ann2.classList.toggle("in", targetFrame >= 48 && targetFrame <= 78);
+          ann3.classList.toggle("in", targetFrame >= 85 && targetFrame <= 114);
+        },
+        { passive: true },
+      );
+
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+      preload();
+    </script>
+  </body>
 </html>

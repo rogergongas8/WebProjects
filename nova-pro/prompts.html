@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>House Prompts — Scroll-Stop Kit</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --border: rgba(255,255,255,0.07);
+      --cream: #f2ede6;
+      --cream-dim: rgba(242,237,230,0.45);
+      --accent: #f2ede6;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem 5rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    header h1 {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    header p {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 760px;
+    }
+    .tab {
+      flex: 1;
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      border: none;
+      color: var(--cream-dim);
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      position: relative;
+    }
+    .tab + .tab { border-left: 1px solid var(--border); }
+    .tab:hover { background: rgba(255,255,255,0.04); color: var(--cream); }
+    .tab.active {
+      background: rgba(242,237,230,0.08);
+      color: var(--cream);
+    }
+    .tab-badge {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+      text-align: center;
+      background: rgba(242,237,230,0.12);
+      border-radius: 4px;
+      font-size: 10px;
+      margin-right: 0.4rem;
+    }
+    .tab.active .tab-badge {
+      background: rgba(242,237,230,0.22);
+    }
+
+    /* ── Panels ── */
+    .panel {
+      display: none;
+      width: 100%;
+      max-width: 760px;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .panel.active { display: flex; }
+
+    .panel-meta {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .panel-meta h2 {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--cream);
+      margin-bottom: 0.35rem;
+    }
+    .panel-meta p {
+      font-size: 13px;
+      color: var(--cream-dim);
+      line-height: 1.6;
+    }
+
+    .prompt-block {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.75rem;
+    }
+    .prompt-text {
+      font-size: 13px;
+      line-height: 1.85;
+      color: rgba(242,237,230,0.88);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.45rem 1rem;
+      background: rgba(242,237,230,0.07);
+      border: 1px solid rgba(242,237,230,0.12);
+      border-radius: 6px;
+      color: var(--cream-dim);
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .copy-btn:hover {
+      background: rgba(242,237,230,0.12);
+      color: var(--cream);
+      border-color: rgba(242,237,230,0.25);
+    }
+    .copy-btn.copied {
+      color: #a8e6a8;
+      border-color: rgba(168,230,168,0.3);
+    }
+
+    /* ── Tips ── */
+    .tips {
+      width: 100%;
+      max-width: 760px;
+      margin-top: 2.5rem;
+      padding: 1.25rem 1.5rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .tips h3 {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      margin-bottom: 0.85rem;
+    }
+    .tips ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .tips li {
+      font-size: 12px;
+      color: rgba(242,237,230,0.45);
+      line-height: 1.6;
+      padding-left: 1rem;
+      position: relative;
+    }
+    .tips li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: rgba(242,237,230,0.2);
+    }
+
+    /* ── Confetti canvas ── */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<header>
+  <h1>3D House — Scroll-Stop Kit</h1>
+  <p>3 prompts · assembled · deconstructed · animated</p>
+</header>
+
+<!-- Tab bar -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab(0)">
+    <span class="tab-badge">A</span> Assembled
+  </button>
+  <button class="tab" onclick="switchTab(1)">
+    <span class="tab-badge">B</span> Deconstructed
+  </button>
+  <button class="tab" onclick="switchTab(2)">
+    <span class="tab-badge">C</span> Video
+  </button>
+</div>
+
+<!-- Panel A -->
+<div class="panel active" id="panel-0">
+  <div class="panel-meta">
+    <h2>Prompt A — Assembled Hero Shot</h2>
+    <p>Generate this first. It becomes the visual reference for Prompt B and the start frame for Prompt C.</p>
+  </div>
+  <div class="prompt-block">
+    <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+    <div class="prompt-text">Modern architectural house, photorealistic Apple-style product photography, pure white #FFFFFF background, centered composition, 3/4 aerial perspective showing full exterior, clean contemporary design with flat roof, floor-to-ceiling windows, warm interior lighting visible through glass, ultra-sharp detail on facade materials (concrete, timber, glass), studio softbox lighting, subtle cast shadow on ground plane, no visible environment or landscape, 16:9 aspect ratio, 8K quality, hyperrealistic CGI render, no lens distortion, no chromatic aberration.</div>
+  </div>
+</div>
+
+<!-- Panel B -->
+<div class="panel" id="panel-1">
+  <div class="panel-meta">
+    <h2>Prompt B — Deconstructed Exploded View</h2>
+    <p>Use Prompt A as a style reference when generating this. Every component should float in space maintaining its original spatial relationship to the whole.</p>
+  </div>
+  <div class="prompt-block">
+    <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+    <div class="prompt-text">Same modern house from Prompt A completely deconstructed into individual floating architectural components, pure white #FFFFFF background, photorealistic exploded architectural diagram, all pieces separated and suspended in space preserving their original spatial positions. Components include: reinforced concrete foundation slab, ground floor slab, structural steel I-beams, load-bearing wall frames and timber studs, exterior glass curtain wall panels, aluminium window frames, pivot entry door with frame, interior partition walls, ceiling drywall panels, roof structural trusses, flat roof membrane and drainage layer, parapet wall sections, interior staircase (treads, stringers, glass railing panels), kitchen cabinetry carcasses, countertop slab, bathroom fixtures (freestanding tub, vanity), HVAC duct runs and diffusers, electrical conduit bundles and distribution board, plumbing pipe runs (hot, cold, waste). Isometric-ish bird's-eye arrangement, each layer clearly separated vertically, equal breathing room between components, photorealistic materials preserved from assembled shot, same warm studio lighting, ultra-high resolution.</div>
+  </div>
+</div>
+
+<!-- Panel C -->
+<div class="panel" id="panel-2">
+  <div class="panel-meta">
+    <h2>Prompt C — Video Transition</h2>
+    <p>Two options: use C1 if you generated A &amp; B images, or use C2 to skip straight to video with no images needed.</p>
+  </div>
+
+  <div class="panel-meta" style="margin-top:0.25rem;">
+    <h2 style="font-size:0.85rem; color: var(--cream-dim); font-weight:400;">C1 — With Reference Images</h2>
+    <p>Upload Prompt A as your start frame and Prompt B as your end frame, then paste this as the motion prompt.</p>
+  </div>
+  <div class="prompt-block">
+    <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+    <div class="prompt-text">Starting from the fully assembled modern house [reference Prompt A image], animate a smooth architectural deconstruction. Motion: the building separates layer by layer from the top down — roof membrane peels away first and floats upward, then roof trusses drift apart, then exterior wall panels slide outward in all four directions, then interior partitions and floor slabs drop downward in sequence, finally the foundation slab stays anchored at center. All components drift to floating, evenly spaced final positions matching the exploded view [reference Prompt B image]. Physics-based separation with slow initial drift accelerating toward final resting positions. Camera holds at a fixed 3/4 aerial angle throughout. Duration: 4–5 seconds. Cinematic architectural CGI aesthetic, pure white background throughout, no camera movement, smooth ease-out on all components. Compatible with: Runway Gen-3, Kling, Pika, Higgsfield.</div>
+  </div>
+
+  <div class="panel-meta" style="margin-top:0.5rem;">
+    <h2 style="font-size:0.85rem; color: var(--cream-dim); font-weight:400;">C2 — Standalone (no images needed)</h2>
+    <p>Paste this directly into any video model. No A or B images required — everything is described in one prompt.</p>
+  </div>
+  <div class="prompt-block">
+    <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+    <div class="prompt-text">Photorealistic architectural CGI animation on a pure white #FFFFFF background, no environment or landscape. Begin with a fully assembled modern house — clean contemporary design, flat roof, floor-to-ceiling glass windows, warm interior light visible through the glass, concrete and timber facade, subtle ground shadow, 3/4 aerial camera angle. Camera holds completely still throughout. Over 4–5 seconds, animate a smooth physics-based deconstruction from the top down: the roof membrane peels upward first, then roof structural trusses separate and float apart, then the four exterior wall panels slide outward away from center, then interior partition walls and floor slabs descend in sequence, and finally all components — foundation slab, wall frames, curtain wall glass panels, roof trusses, roof membrane, staircase assembly, interior cabinetry, plumbing runs, HVAC ducts — settle into an evenly spaced isometric exploded-view arrangement floating on the white background. Each component drifts slowly at first then eases into its final position. Ultra-high resolution, cinematic lighting preserved throughout, no camera movement, no background change. Compatible with: Runway Gen-3, Kling, Pika, Higgsfield.</div>
+  </div>
+</div>
+
+<!-- Tips -->
+<div class="tips">
+  <h3>Tips</h3>
+  <ul>
+    <li>Generate Prompt A first — then reference it explicitly when generating Prompt B for visual consistency across shots.</li>
+    <li>The reverse animation (components assembling into the house) is often more compelling. Ask the video model for both directions and compare.</li>
+    <li>For Runway Gen-3: upload Prompt A as the keyframe image and paste Prompt C as the text prompt.</li>
+    <li>Midjourney works best for A and B. Kling or Runway Gen-3 for C. Pika handles shorter clips well.</li>
+    <li>Add "architectural visualization, unreal engine 5" to Prompt A for a more photorealistic 3D render feel.</li>
+  </ul>
+</div>
+
+<script>
+  // ── Tab switching ────────────────────────────────────────────
+  const tabs   = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+
+  function switchTab(i) {
+    tabs.forEach((t, idx)   => t.classList.toggle('active', idx === i));
+    panels.forEach((p, idx) => p.classList.toggle('active', idx === i));
+  }
+
+  // ── Copy with confetti ───────────────────────────────────────
+  function copyPrompt(btn) {
+    const text = btn.nextElementSibling.textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      burst(btn);
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  // ── Minimal confetti burst ───────────────────────────────────
+  const cvs = document.getElementById('confetti-canvas');
+  const cctx = cvs.getContext('2d');
+  cvs.width  = window.innerWidth;
+  cvs.height = window.innerHeight;
+  window.addEventListener('resize', () => {
+    cvs.width  = window.innerWidth;
+    cvs.height = window.innerHeight;
+  });
+
+  const particles = [];
+  const COLORS = ['#f2ede6','#d4c9b8','#a89880','#ffffff','#e8ddd0'];
+
+  function burst(btn) {
+    const r   = btn.getBoundingClientRect();
+    const ox  = r.left + r.width  / 2;
+    const oy  = r.top  + r.height / 2;
+    for (let i = 0; i < 38; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2.5 + Math.random() * 4;
+      particles.push({
+        x: ox, y: oy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 2,
+        size: 3 + Math.random() * 4,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        alpha: 1,
+        rot: Math.random() * 360,
+        rspeed: (Math.random() - 0.5) * 8,
+        life: 1,
+      });
+    }
+    if (particles.length > 0 && !cvs._rafRunning) {
+      cvs._rafRunning = true;
+      requestAnimationFrame(tickConfetti);
+    }
+  }
+
+  function tickConfetti() {
+    cctx.clearRect(0, 0, cvs.width, cvs.height);
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vy += 0.18; // gravity
+      p.vx *= 0.98;
+      p.life -= 0.022;
+      p.alpha = Math.max(0, p.life);
+      p.rot += p.rspeed;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      cctx.save();
+      cctx.globalAlpha = p.alpha;
+      cctx.translate(p.x, p.y);
+      cctx.rotate(p.rot * Math.PI / 180);
+      cctx.fillStyle = p.color;
+      cctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.5);
+      cctx.restore();
+    }
+    if (particles.length > 0) {
+      requestAnimationFrame(tickConfetti);
+    } else {
+      cvs._rafRunning = false;
+      cctx.clearRect(0, 0, cvs.width, cvs.height);
+    }
+  }
+</script>
+</body>
+</html>

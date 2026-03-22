@@ -17,8 +17,10 @@ Clean hero product image on a pure white background. Optimized for AI image gene
 ### Prompt B — Deconstructed / Exploded View
 The same object elegantly taken apart — every internal component floating in space on a white background, maintaining spatial relationships. Includes a real component list specific to your object type (laptops, phones, shoes, food/beverages, etc.).
 
-### Prompt C — Video Transition
-Instructions for a video model to animate between assembled and deconstructed states. Works with Runway, Kling, Pika, Higgsfield — any video model. You upload Prompt A's image as the start frame and Prompt B's image as the end frame.
+### Prompt C — Video Transition (two versions)
+**C1 — With References:** For when you've already generated A and B. Upload A as start frame, B as end frame, and paste C1 as the motion prompt. Saves tokens — the model uses your images as visual anchors.
+
+**C2 — Standalone:** A fully self-contained prompt you paste directly into any video model with no images needed. Describes the assembled object, the deconstruction motion, and the final exploded state all in one go. Use this to skip generating A and B entirely and go straight to video.
 
 ## Workflow
 
